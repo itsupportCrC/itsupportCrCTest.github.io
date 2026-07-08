@@ -1,398 +1,1271 @@
-<!doctype html>
-<html lang="th" class="h-full">
- <head>
+<!DOCTYPE html>
+<html lang="th">
+<head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CRC STEEL - ระบบบันทึกข้อมูล</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="/_sdk/element_sdk.js"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet">
+  <title>HR One Stop Service</title>
+  <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
   <style>
-    * {
-      box-sizing: border-box;
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Sarabun', sans-serif; background: #f0f4f8; min-height: 100vh; padding-bottom: 40px; }
+    .header { background: #1A6B1A; color: white; padding: 20px 16px 16px; text-align: center; }
+    .header .icon { font-size: 2rem; margin-bottom: 4px; }
+    .header h1 { font-size: 1.1rem; font-weight: 700; margin-bottom: 2px; }
+    .header p { font-size: 0.82rem; opacity: 0.85; }
+    .card { background: white; margin: 16px; border-radius: 16px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); overflow: hidden; }
+    .card-header { background: #f8fdf8; border-bottom: 1px solid #e8f5e8; padding: 14px 16px; font-size: 0.85rem; color: #1A6B1A; font-weight: 600; }
+    .card-body { padding: 16px; }
+    .field { margin-bottom: 16px; }
+    .field label { display: block; font-size: 0.85rem; font-weight: 600; color: #333; margin-bottom: 6px; }
+    .field label .required { color: #e53e3e; margin-left: 2px; }
+    .field input, .field select, .field textarea {
+      width: 100%; padding: 11px 13px; border: 1.5px solid #ddd; border-radius: 10px;
+      font-size: 0.92rem; font-family: inherit; color: #333; background: #fafafa;
+      -webkit-appearance: none; appearance: none;
     }
-
-    html, body {
-      height: 100%;
-      width: 100%;
-      margin: 0;
-      padding: 0;
+    .field select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23666' d='M6 8L1 3h10z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 36px; }
+    .field textarea { height: 90px; resize: none; }
+    .field.error input, .field.error select, .field.error textarea { border-color: #e53e3e; }
+    .field .error-msg { color: #e53e3e; font-size: 0.78rem; margin-top: 4px; display: none; }
+    .field.error .error-msg { display: block; }
+    /* Photo Upload */
+    .photo-section { margin: 0 16px 16px; }
+    .photo-section h3 { font-size: 0.9rem; font-weight: 600; color: #333; margin-bottom: 10px; }
+    .photo-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .photo-slot { border: 2px dashed #ddd; border-radius: 10px; aspect-ratio: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; position: relative; overflow: hidden; background: #fafafa; }
+    .photo-slot input[type=file] { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+    .photo-slot img { width: 100%; height: 100%; object-fit: cover; }
+    .photo-slot .placeholder { font-size: 1.8rem; color: #ccc; }
+    .exp-selected { border-color: #1A6B1A !important; background: #EAF3DE !important; }
+    .exp-type-item input[type=checkbox], .vehicle-chk input[type=checkbox] {
+      width: 16px; height: 16px; flex-shrink: 0; cursor: pointer;
+      appearance: checkbox; -webkit-appearance: checkbox;
+      accent-color: #1A6B1A; border-radius: 3px;
     }
-
-    body {
-      font-family: 'Prompt', sans-serif;
-    }
-
-    #app-wrapper {
-      width: 100%;
-      height: 100%;
-      overflow-y: auto;
-    }
-
-    .gradient-bg {
-      background: linear-gradient(135deg, #0077b6 0%, #00b4d8 50%, #90e0ef 100%);
-    }
-
-    .card-shadow {
-      box-shadow: 0 10px 40px rgba(0, 119, 182, 0.15);
-    }
-
-    .input-focus:focus {
-      border-color: #0077b6;
-      box-shadow: 0 0 0 3px rgba(0, 119, 182, 0.1);
-    }
-
-    .btn-primary {
-      background: linear-gradient(135deg, #0077b6 0%, #00b4d8 100%);
-      transition: all 0.3s ease;
-    }
-
-    .btn-primary:hover:not(:disabled) {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 25px rgba(0, 119, 182, 0.3);
-    }
-
-    .btn-primary:disabled {
-      opacity: 0.7;
-      cursor: not-allowed;
-    }
-
-    .form-section {
-      animation: fadeInUp 0.5s ease forwards;
-      opacity: 0;
-    }
-
-    @keyframes fadeInUp {
-      from {
-        opacity: 0;
-        transform: translateY(20px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    .form-section:nth-child(1) { animation-delay: 0.1s; }
-    .form-section:nth-child(2) { animation-delay: 0.2s; }
-    .form-section:nth-child(3) { animation-delay: 0.3s; }
-    .form-section:nth-child(4) { animation-delay: 0.4s; }
-
-    .radio-custom:checked + label {
-      background: linear-gradient(135deg, #0077b6 0%, #00b4d8 100%);
-      color: white;
-      border-color: #0077b6;
-    }
-
-    .status-badge {
-      animation: pulse 2s infinite;
-    }
-
-    @keyframes pulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.7; }
-    }
-
-    .toast {
-      animation: slideIn 0.3s ease forwards;
-    }
-
-    @keyframes slideIn {
-      from {
-        transform: translateX(100%);
-        opacity: 0;
-      }
-      to {
-        transform: translateX(0);
-        opacity: 1;
-      }
-    }
-
-    select {
-      appearance: none;
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%230077b6' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
-      background-repeat: no-repeat;
-      background-position: right 1rem center;
-      padding-right: 2.5rem;
-    }
+    .exp-type-item, .vehicle-chk { transition: all 0.15s ease; }
+    .photo-slot .remove-btn { position: absolute; top: 4px; right: 4px; background: rgba(0,0,0,0.5); color: white; border: none; border-radius: 50%; width: 22px; height: 22px; font-size: 12px; cursor: pointer; display: none; }
+    /* File upload section */
+    .file-section { margin: 0 16px 16px; }
+    .file-section h3 { font-size: 0.9rem; font-weight: 600; color: #333; margin-bottom: 10px; }
+    .file-item { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; background: #fafafa; border: 1.5px solid #ddd; border-radius: 10px; padding: 10px 12px; position: relative; }
+    .file-item input[type=file] { flex: 1; font-size: 0.85rem; font-family: inherit; border: none; background: transparent; }
+    .file-item .file-name { flex: 1; font-size: 0.85rem; color: #333; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .file-item .remove-file { background: none; border: none; color: #e53e3e; font-size: 1.1rem; cursor: pointer; padding: 0 4px; flex-shrink: 0; }
+    .btn-add-file { display: flex; align-items: center; gap: 6px; background: none; border: 1.5px dashed #1A6B1A; border-radius: 10px; color: #1A6B1A; font-size: 0.85rem; font-family: inherit; padding: 8px 14px; cursor: pointer; width: 100%; justify-content: center; }
+    .photo-slot.has-image .remove-btn { display: flex; align-items: center; justify-content: center; }
+    .btn-submit { display: block; width: calc(100% - 32px); margin: 0 16px 16px; padding: 15px; background: #1A6B1A; color: white; border: none; border-radius: 12px; font-size: 1rem; font-weight: 700; font-family: inherit; cursor: pointer; }
+    .btn-submit:disabled { opacity: 0.6; cursor: not-allowed; }
+    .loading { display: none; text-align: center; padding: 40px 16px; color: #666; }
+    .spinner { width: 40px; height: 40px; border: 4px solid #eee; border-top-color: #1A6B1A; border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 12px; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .progress-text { font-size: 0.82rem; color: #888; margin-top: 8px; }
+    .success-wrap { display: none; text-align: center; padding: 40px 24px; }
+    .success-icon { font-size: 3.5rem; margin-bottom: 12px; }
+    .success-wrap h2 { color: #1A6B1A; font-size: 1.2rem; margin-bottom: 8px; }
+    .success-wrap p { color: #666; font-size: 0.88rem; line-height: 1.6; }
+    .ref-badge { display: inline-block; background: #f0f9f0; border: 1px solid #c6e6c6; color: #1A6B1A; font-size: 0.82rem; font-weight: 700; padding: 6px 14px; border-radius: 20px; margin-top: 12px; }
+    .btn-close { display: block; width: 100%; margin-top: 20px; padding: 12px; background: #1A6B1A; color: white; border: none; border-radius: 10px; font-size: 0.95rem; font-family: inherit; cursor: pointer; }
+    .error-page { display: none; text-align: center; padding: 40px 24px; }
+    .error-page .icon { font-size: 3rem; margin-bottom: 12px; }
+    .error-page p { color: #666; font-size: 0.9rem; }
   </style>
-  <style>@view-transition { navigation: auto; }</style>
-  <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
- </head>
- <body class="h-full bg-gray-50">
-  <div id="app-wrapper" class="w-full h-full overflow-y-auto"><!-- Header -->
-   <header class="gradient-bg text-white py-6 px-4 sticky top-0 z-10">
-    <div class="max-w-5xl mx-auto">
-     <div class="flex items-center justify-between gap-4">
-      <div class="flex items-center gap-4"><!-- Logo SVG -->
-       <div class="w-14 h-14 bg-white rounded-xl flex items-center justify-center card-shadow flex-shrink-0">
-        <svg viewbox="0 0 48 48" class="w-10 h-10"><rect x="4" y="20" width="40" height="8" rx="2" fill="#0077b6" /> <rect x="8" y="12" width="32" height="6" rx="1" fill="#00b4d8" /> <rect x="12" y="30" width="24" height="6" rx="1" fill="#00b4d8" /> <circle cx="16" cy="40" r="4" fill="#0077b6" /> <circle cx="32" cy="40" r="4" fill="#0077b6" />
-        </svg>
-       </div>
-       <div>
-        <h1 id="company-name" class="text-2xl font-bold tracking-wide">CRC STEEL จำกัด</h1>
-        <p id="form-title" class="text-blue-100 text-sm">ระบบบันทึกข้อมูลการขนส่ง</p>
-       </div>
-      </div>
-      <div class="hidden md:flex items-center gap-2 bg-white/20 rounded-full px-4 py-2">
-       <div class="w-2 h-2 bg-green-400 rounded-full status-badge"></div><span class="text-sm font-medium">ออนไลน์</span>
-      </div>
-     </div>
-    </div>
-   </header><!-- Main Content -->
-   <main class="max-w-5xl mx-auto px-4 py-8 pb-12">
-    <form id="dataForm" class="space-y-6"><!-- Section 1: ข้อมูลทั่วไป -->
-     <div class="form-section bg-white rounded-2xl card-shadow p-6">
-      <div class="flex items-center gap-3 mb-6">
-       <div class="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center flex-shrink-0">
-        <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-        </svg>
-       </div>
-       <h2 class="text-lg font-semibold text-gray-800">ข้อมูลทั่วไป</h2>
-      </div>
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4"><!-- วันที่ -->
-       <div><label class="block text-sm font-medium text-gray-700 mb-2">วัน/เดือน/ปี <span class="text-red-500">*</span></label> <input type="date" name="date" required class="w-full px-4 py-3 rounded-xl border border-gray-200 input-focus transition-all outline-none">
-       </div><!-- ไป/กลับ -->
-       <div><label class="block text-sm font-medium text-gray-700 mb-2">ไป/กลับ <span class="text-red-500">*</span></label>
-        <div class="flex gap-2"><input type="radio" name="direction" value="ไป" id="dir-go" class="hidden radio-custom" required> <label for="dir-go" class="flex-1 text-center py-3 rounded-xl border-2 border-gray-200 cursor-pointer transition-all font-medium hover:border-blue-300">ไป</label> <input type="radio" name="direction" value="กลับ" id="dir-back" class="hidden radio-custom"> <label for="dir-back" class="flex-1 text-center py-3 rounded-xl border-2 border-gray-200 cursor-pointer transition-all font-medium hover:border-blue-300">กลับ</label>
-        </div>
-       </div><!-- TRIP -->
-       <div><label class="block text-sm font-medium text-gray-700 mb-2">TRIP <span class="text-red-500">*</span></label> <input type="text" name="trip" required placeholder="เช่น T001" class="w-full px-4 py-3 rounded-xl border border-gray-200 input-focus transition-all outline-none">
-       </div>
-      </div>
-     </div><!-- Section 2: ข้อมูลพนักงานและรถ -->
-     <div class="form-section bg-white rounded-2xl card-shadow p-6">
-      <div class="flex items-center gap-3 mb-6">
-       <div class="w-10 h-10 rounded-xl bg-green-100 flex items-center justify-center flex-shrink-0">
-        <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-        </svg>
-       </div>
-       <h2 class="text-lg font-semibold text-gray-800">ข้อมูลพนักงานและรถ</h2>
-      </div>
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4"><!-- รหัสพนักงาน -->
-       <div><label class="block text-sm font-medium text-gray-700 mb-2">รหัสพนักงาน <span class="text-red-500">*</span></label> <input type="text" name="employeeId" required placeholder="เช่น EMP001" class="w-full px-4 py-3 rounded-xl border border-gray-200 input-focus transition-all outline-none">
-       </div><!-- ชื่อพนักงานขับรถ -->
-       <div><label class="block text-sm font-medium text-gray-700 mb-2">ชื่อพนักงานขับรถ <span class="text-red-500">*</span></label> <input type="text" name="driverName" required placeholder="ชื่อ-นามสกุล" class="w-full px-4 py-3 rounded-xl border border-gray-200 input-focus transition-all outline-none">
-       </div><!-- เบอร์รถ -->
-       <div><label class="block text-sm font-medium text-gray-700 mb-2">เบอร์รถ <span class="text-red-500">*</span></label> <input type="text" name="vehicleNumber" required placeholder="เช่น กข-1234" class="w-full px-4 py-3 rounded-xl border border-gray-200 input-focus transition-all outline-none">
-       </div><!-- AD -->
-       <div><label class="block text-sm font-medium text-gray-700 mb-2">AD</label> <input type="text" name="ad" placeholder="AD" class="w-full px-4 py-3 rounded-xl border border-gray-200 input-focus transition-all outline-none">
-       </div><!-- เลขกิโล -->
-       <div><label class="block text-sm font-medium text-gray-700 mb-2">เลขกิโล <span class="text-red-500">*</span></label> <input type="number" name="mileage" required placeholder="เช่น 125000" class="w-full px-4 py-3 rounded-xl border border-gray-200 input-focus transition-all outline-none">
-       </div><!-- ส่งสินค้าที่ -->
-       <div><label class="block text-sm font-medium text-gray-700 mb-2">ส่งสินค้าที่ <span class="text-red-500">*</span></label> <input type="text" name="destination" required placeholder="สถานที่ส่งสินค้า" class="w-full px-4 py-3 rounded-xl border border-gray-200 input-focus transition-all outline-none">
-       </div>
-      </div>
-     </div><!-- Section 3: การตรวจสอบสภาพรถ -->
-     <div class="form-section bg-white rounded-2xl card-shadow p-6">
-      <div class="flex items-center gap-3 mb-6">
-       <div class="w-10 h-10 rounded-xl bg-orange-100 flex items-center justify-center flex-shrink-0">
-        <svg class="w-5 h-5 text-orange-600" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-        </svg>
-       </div>
-       <h2 class="text-lg font-semibold text-gray-800">การตรวจสอบสภาพรถ</h2>
-      </div>
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4"><!-- น้ำมันเครื่อง -->
-       <div><label class="block text-sm font-medium text-gray-700 mb-2">น้ำมันเครื่อง</label> <select name="engineOil" class="w-full px-4 py-3 rounded-xl border border-gray-200 input-focus transition-all outline-none bg-white"> <option value="">-- เลือกสถานะ --</option> <option value="ปกติ">✅ ปกติ</option> <option value="ต้องเติม">⚠️ ต้องเติม</option> <option value="ต้องเปลี่ยน">🔴 ต้องเปลี่ยน</option> </select>
-       </div><!-- น้ำหล่อเย็น -->
-       <div><label class="block text-sm font-medium text-gray-700 mb-2">น้ำหล่อเย็น</label> <select name="coolant" class="w-full px-4 py-3 rounded-xl border border-gray-200 input-focus transition-all outline-none bg-white"> <option value="">-- เลือกสถานะ --</option> <option value="ปกติ">✅ ปกติ</option> <option value="ต้องเติม">⚠️ ต้องเติม</option> <option value="ต้องเปลี่ยน">🔴 ต้องเปลี่ยน</option> </select>
-       </div><!-- สภาพยาง -->
-       <div><label class="block text-sm font-medium text-gray-700 mb-2">สภาพยาง</label> <select name="tireCondition" class="w-full px-4 py-3 rounded-xl border border-gray-200 input-focus transition-all outline-none bg-white"> <option value="">-- เลือกสถานะ --</option> <option value="ดี">✅ ดี</option> <option value="พอใช้">⚠️ พอใช้</option> <option value="ต้องเปลี่ยน">🔴 ต้องเปลี่ยน</option> </select>
-       </div><!-- ไฟแสงสว่าง -->
-       <div><label class="block text-sm font-medium text-gray-700 mb-2">ไฟแสงสว่าง</label> <select name="lights" class="w-full px-4 py-3 rounded-xl border border-gray-200 input-focus transition-all outline-none bg-white"> <option value="">-- เลือกสถานะ --</option> <option value="ปกติ">✅ ปกติ</option> <option value="ชำรุด">🔴 ชำรุด</option> </select>
-       </div>
-      </div>
-     </div><!-- Section 4: รูปภาพและหมายเหตุ -->
-     <div class="form-section bg-white rounded-2xl card-shadow p-6">
-      <div class="flex items-center gap-3 mb-6">
-       <div class="w-10 h-10 rounded-xl bg-purple-100 flex items-center justify-center flex-shrink-0">
-        <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-        </svg>
-       </div>
-       <h2 class="text-lg font-semibold text-gray-800">รูปภาพและหมายเหตุ</h2>
-      </div>
-      <div class="space-y-4"><!-- รูปภาพ -->
-       <div><label class="block text-sm font-medium text-gray-700 mb-2">รูปภาพ</label>
-        <div class="relative"><input type="file" name="image" id="imageInput" accept="image/*" class="hidden" onchange="handleImageChange(this)"> <label for="imageInput" class="flex flex-col items-center justify-center w-full h-40 border-2 border-dashed border-gray-300 rounded-xl cursor-pointer hover:border-blue-400 transition-all bg-gray-50 hover:bg-blue-50">
-          <div id="imagePreviewContainer" class="flex flex-col items-center justify-center">
-           <svg class="w-10 h-10 text-gray-400 mb-2" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-           </svg><span class="text-sm text-gray-500">คลิกเพื่ออัพโหลดรูปภาพ</span> <span class="text-xs text-gray-400 mt-1">PNG, JPG (สูงสุด 5MB)</span>
-          </div><img id="imagePreview" class="hidden max-h-36 rounded-lg object-contain" alt="Preview"> </label>
-        </div>
-       </div><!-- หมายเหตุ -->
-       <div><label class="block text-sm font-medium text-gray-700 mb-2">หมายเหตุ</label> <textarea name="remarks" rows="3" placeholder="รายละเอียดเพิ่มเติม..." class="w-full px-4 py-3 rounded-xl border border-gray-200 input-focus transition-all outline-none resize-none"></textarea>
-       </div>
-      </div>
-     </div><!-- Submit Button -->
-     <div class="form-section"><button type="submit" id="submitBtn" class="w-full btn-primary text-white font-semibold py-4 rounded-xl flex items-center justify-center gap-3">
-       <svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
-       </svg><span id="submitText">บันทึกข้อมูล</span> </button>
-     </div>
-    </form>
-   </main><!-- Toast Notification -->
-   <div id="toast" class="fixed top-4 right-4 z-50 hidden">
-    <div class="toast bg-white rounded-xl card-shadow p-4 flex items-center gap-3 max-w-sm">
-     <div id="toastIcon" class="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0"></div>
-     <div class="min-w-0">
-      <p id="toastTitle" class="font-semibold text-gray-800"></p>
-      <p id="toastMessage" class="text-sm text-gray-500"></p>
-     </div>
-    </div>
-   </div><!-- Footer -->
-   <footer class="bg-white border-t border-gray-100 py-4 mt-8">
-    <div class="max-w-5xl mx-auto px-4 text-center">
-     <p class="text-sm text-gray-500">© 2024 CRC STEEL จำกัด - ระบบบันทึกข้อมูลการขนส่ง</p>
-    </div>
-   </footer>
+</head>
+<body>
+
+<div class="header">
+  <div class="icon" id="headerIcon">📋</div>
+  <h1 id="headerTitle">HR One Stop Service</h1>
+  <p>ฝ่ายบุคคลยินดีให้บริการค่ะ</p>
+</div>
+
+<div id="formSection" style="display:none;">
+  <div class="card">
+    <div class="card-header" id="formTitle">กรุณากรอกข้อมูลให้ครบถ้วนค่ะ</div>
+    <div class="card-body" id="formFields"></div>
   </div>
-  <script>
-    const defaultConfig = {
-      company_name: 'CRC STEEL จำกัด',
-      form_title: 'ระบบบันทึกข้อมูลการขนส่ง'
-    };
+  <div id="photoSection" class="photo-section" style="display:none;">
+    <h3 id="photoSectionTitle">📷 แนบรูปภาพ</h3>
+    <div class="photo-grid" id="photoGrid"></div>
+    <button id="btnAddPhoto" class="btn-add-file" onclick="addPhotoSlot()" style="margin-top:8px;">+ เพิ่มรูป</button>
+  </div>
+  <div id="fileSection" class="file-section" style="display:none;">
+    <h3>📎 แนบไฟล์เอกสาร</h3>
+    <div id="fileList"></div>
+    <button class="btn-add-file" id="btnAddFile" onclick="addFileSlot()">+ เพิ่มไฟล์</button>
+  </div>
+  <button class="btn-submit" onclick="submitForm()">✅ ยืนยันการส่ง</button>
+</div>
 
-    let config = { ...defaultConfig };
-    let imageBase64 = '';
+<div class="loading" id="loadingSection">
+  <div class="spinner"></div>
+  <p id="loadingText">กำลังโหลด กรุณารอสักครู่...</p>
+  <p class="progress-text" id="progressText"></p>
+</div>
 
-    function handleImageChange(input) {
-      const file = input.files[0];
-      if (file) {
-        if (file.size > 5 * 1024 * 1024) {
-          showToast('error', 'ไฟล์ใหญ่เกินไป', 'กรุณาเลือกไฟล์ที่มีขนาดไม่เกิน 5MB');
-          input.value = '';
-          return;
-        }
-        
-        const reader = new FileReader();
-        reader.onload = function(e) {
-          imageBase64 = e.target.result;
-          const preview = document.getElementById('imagePreview');
-          const container = document.getElementById('imagePreviewContainer');
-          preview.src = imageBase64;
-          preview.classList.remove('hidden');
-          container.classList.add('hidden');
-        };
-        reader.readAsDataURL(file);
-      }
-    }
+<div class="card" id="successSection" style="display:none; margin:16px;">
+  <div class="success-wrap" style="display:block;">
+    <div class="success-icon">✅</div>
+    <h2>ส่งสำเร็จแล้วค่ะ!</h2>
+    <p id="successMsg"></p>
+    <div class="ref-badge" id="refBadge"></div>
+    <button class="btn-close" onclick="closeLiff()">ปิดหน้าต่างนี้</button>
+  </div>
+</div>
 
-    function showToast(type, title, message) {
-      const toast = document.getElementById('toast');
-      const toastIcon = document.getElementById('toastIcon');
-      const toastTitle = document.getElementById('toastTitle');
-      const toastMessage = document.getElementById('toastMessage');
-      
-      toastTitle.textContent = title;
-      toastMessage.textContent = message;
-      
-      if (type === 'success') {
-        toastIcon.className = 'w-10 h-10 rounded-full flex items-center justify-center bg-green-100 flex-shrink-0';
-        toastIcon.innerHTML = '<svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>';
-      } else {
-        toastIcon.className = 'w-10 h-10 rounded-full flex items-center justify-center bg-red-100 flex-shrink-0';
-        toastIcon.innerHTML = '<svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>';
-      }
-      
-      toast.classList.remove('hidden');
-      
-      setTimeout(() => {
-        toast.classList.add('hidden');
-      }, 4000);
-    }
+<div class="card" id="errorPage" style="display:none; margin:16px;">
+  <div class="error-page" style="display:block;">
+    <div class="icon">⚠️</div>
+    <p id="errorMsg">ไม่พบข้อมูลฟอร์มที่ต้องการ<br>กรุณากดปุ่มจาก Rich Menu อีกครั้งค่ะ</p>
+  </div>
+</div>
 
-    function setDefaultDate() {
-      const dateInput = document.querySelector('input[name="date"]');
-      const today = new Date().toISOString().split('T')[0];
-      dateInput.value = today;
-    }
+<script>
+  const LIFF_ID   = "2010288695-pPKXCZPa";
 
-    document.getElementById('dataForm').addEventListener('submit', async function(e) {
-      e.preventDefault();
-      
-      const submitBtn = document.getElementById('submitBtn');
-      const submitText = document.getElementById('submitText');
-      
-      submitBtn.disabled = true;
-      submitText.innerHTML = '<svg class="animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>&nbsp;กำลังบันทึก...';
-      
-      const formData = new FormData(this);
-      
-      const data = {
-        date: formData.get('date'),
-        direction: formData.get('direction'),
-        trip: formData.get('trip'),
-        employeeId: formData.get('employeeId'),
-        driverName: formData.get('driverName'),
-        vehicleNumber: formData.get('vehicleNumber'),
-        ad: formData.get('ad') || '-',
-        mileage: formData.get('mileage'),
-        destination: formData.get('destination'),
-        engineOil: formData.get('engineOil') || '-',
-        coolant: formData.get('coolant') || '-',
-        tireCondition: formData.get('tireCondition') || '-',
-        lights: formData.get('lights') || '-',
-        image: imageBase64 || '-',
-        remarks: formData.get('remarks') || '-'
-      };
-      
+  // ===== FLOWS =====
+  const FLOWS = {
+    "1": {
+      sheetName: "เงินเดือน-เอกสาร", title: "เงินเดือน & เอกสาร", icon: "💰",
+      fields: [
+        { key: "บริษัท", label: "บริษัท", type: "company" },
+        { key: "สาขา", label: "สาขา", type: "branch" },
+        { key: "รหัสพนักงาน", label: "รหัสพนักงาน", type: "text", placeholder: "เช่น EMP001" },
+        { key: "ชื่อ-สกุล", label: "ชื่อ-นามสกุล", type: "text", placeholder: "ชื่อ นามสกุล" },
+        { key: "ตำแหน่ง", label: "ตำแหน่ง", type: "text", placeholder: "ระบุตำแหน่ง" },
+        { key: "ประเภทเอกสาร", label: "ประเภทเอกสาร", type: "select", opts: ["หนังสือรับรองเงินเดือน","หนังสือรับรองการทำงาน","หนังสือรับรองความประพฤติ (เงินยิ้มได้)","หนังสือรับรองการผ่านงาน (กรณีลาออก)"] },
+        { key: "จำนวนชุด", label: "จำนวนชุด", type: "number", placeholder: "ระบุจำนวน" },
+        { key: "วัตถุประสงค์", label: "วัตถุประสงค์", type: "text", placeholder: "เช่น ยื่นกู้ธนาคาร" },
+        { key: "วันที่ต้องการรับ", label: "วันที่ต้องการรับ", type: "date" },
+        { key: "เบอร์โทรติดต่อกลับ", label: "เบอร์โทรติดต่อกลับ", type: "tel", placeholder: "0XX-XXX-XXXX" },
+      ],
+      ack: "✅ ฝ่ายบุคคลได้รับคำร้องเรียบร้อยแล้วค่ะ 📩\nจะดำเนินการและติดต่อกลับภายใน 1–3 วันทำการค่ะ\nขอบคุณค่ะ 🌷",
+    },
+    "2": {
+      sheetName: "สวัสดิการ-กองทุน", title: "สวัสดิการ & กองทุน", icon: "🏥",
+      fields: [
+        { key: "บริษัท", label: "บริษัท", type: "company" },
+        { key: "สาขา", label: "สาขา", type: "branch" },
+        { key: "รหัสพนักงาน", label: "รหัสพนักงาน", type: "text", placeholder: "เช่น EMP001" },
+        { key: "ชื่อ-สกุล", label: "ชื่อ-นามสกุล", type: "text", placeholder: "ชื่อ นามสกุล" },
+        { key: "ตำแหน่ง", label: "ตำแหน่ง", type: "text", placeholder: "ระบุตำแหน่ง" },
+        { key: "ประเภท", label: "ประเภท", type: "select",
+          opts: ["เบิกของสวัสดิการ","เบิกสวัสดิการตามสิทธิ","สมัครกองทุนสำรองเลี้ยงชีพ","เบิกยา","แจ้งทำความดี"],
+          conditional: {
+            "เบิกของสวัสดิการ":     { key: "รายการเบิก",  label: "รายการที่ต้องการเบิก", type: "select", opts: ["บัตรพนักงาน","เสื้อยูนิฟอร์ม","สายคล้องบัตร","กรอบบัตร"] },
+            "เบิกสวัสดิการตามสิทธิ": { key: "ประเภทสิทธิ", label: "ประเภทสวัสดิการ",      type: "select", opts: ["คลอดบุตร","งานศพ","ภัยพิบัติ"] },
+            "เบิกยา": { type: "multi", fields: [
+              { key: "ฝ่าย-เบิกยา",    label: "ฝ่าย",      type: "select", opts: ["การเงิน","การตลาด","ขาย","คลังสินค้า","จัดซื้อ","จัดส่ง","ซ่อมบำรุง","บริหาร","บัญชี","บุคคล","ผู้บริหาร","IT"] },
+              { key: "ตำแหน่ง-เบิกยา", label: "ตำแหน่ง",   type: "text",     placeholder: "ระบุตำแหน่ง" },
+              { key: "อาการป่วย",       label: "อาการป่วย",  type: "textarea", placeholder: "ระบุอาการป่วย" },
+            ]},
+            "แจ้งทำความดี": { type: "multi", fields: [
+              { key: "ฝ่าย-ทำความดี",        label: "ฝ่าย",                  type: "select", opts: ["การเงิน","การตลาด","ขาย","คลังสินค้า","จัดซื้อ","จัดส่ง","ซ่อมบำรุง","บริหาร","บัญชี","บุคคล","ผู้บริหาร","IT"] },
+              { key: "ตำแหน่ง-ทำความดี",     label: "ตำแหน่ง",               type: "text",     placeholder: "ระบุตำแหน่ง" },
+              { key: "ชื่อพนักงานทำความดี",   label: "ชื่อพนักงานทำความดี",   type: "text",     placeholder: "ชื่อ นามสกุล" },
+              { key: "รายละเอียดการทำความดี", label: "รายละเอียดการทำความดี", type: "textarea", placeholder: "ระบุรายละเอียด" },
+            ]},
+          }
+        },
+        { key: "รายละเอียด", label: "รายละเอียด (ถ้ามี)", type: "textarea", placeholder: "อธิบายรายละเอียดเพิ่มเติม", required: false,
+          hideWhen: ["เบิกยา","แจ้งทำความดี"] },
+        { key: "เบอร์โทรติดต่อกลับ", label: "เบอร์โทรติดต่อกลับ", type: "tel", placeholder: "0XX-XXX-XXXX" },
+      ],
+      ack: "✅ ฝ่ายบุคคลได้รับเรื่องแล้วค่ะ 📩\nจะดำเนินการและติดต่อกลับภายใน 1–3 วันทำการค่ะ\nขอบคุณค่ะ 🌷",
+    },
+    "3": {
+      sheetName: "แจ้งอุบัติเหตุ", title: "แจ้งอุบัติเหตุ", icon: "🚨", hasPhoto: true,
+      fields: [
+        { key: "บริษัท", label: "บริษัท", type: "company" },
+        { key: "สาขา", label: "สาขา", type: "branch" },
+        { key: "รหัสพนักงาน", label: "รหัสพนักงาน", type: "text", placeholder: "เช่น EMP001" },
+        { key: "ชื่อ-สกุล", label: "ชื่อ-นามสกุล", type: "text", placeholder: "ชื่อ นามสกุล" },
+        { key: "ตำแหน่ง", label: "ตำแหน่ง", type: "text", placeholder: "ระบุตำแหน่ง" },
+        { key: "วัน/เดือน/ปี ที่เกิดเหตุ", label: "วันที่เกิดเหตุ", type: "date" },
+        { key: "เวลาที่เกิดเหตุ", label: "เวลาที่เกิดเหตุ", type: "time" },
+        { key: "สถานที่เกิดเหตุ", label: "สถานที่เกิดเหตุ", type: "text", placeholder: "ระบุสถานที่" },
+        { key: "หน้าที่ขณะเกิดอุบัติเหตุ", label: "หน้าที่ขณะเกิดเหตุ", type: "text", placeholder: "ระบุหน้าที่" },
+        { key: "อวัยวะที่ได้รับบาดเจ็บ", label: "อวัยวะที่บาดเจ็บ", type: "text", placeholder: "ระบุอวัยวะ" },
+        { key: "อาการเบื้องต้น", label: "อาการเบื้องต้น", type: "textarea", placeholder: "อธิบายอาการ" },
+        { key: "รายละเอียดเหตุการณ์", label: "รายละเอียดเหตุการณ์", type: "textarea", placeholder: "เล่าเหตุการณ์" },
+        { key: "ผู้เห็นเหตุการณ์/พยาน", label: "พยาน/ผู้เห็นเหตุการณ์", type: "text", placeholder: "ชื่อพยาน (ถ้ามี)", required: false },
+        { key: "เบอร์โทรติดต่อหน้างาน", label: "เบอร์โทรติดต่อ", type: "tel", placeholder: "0XX-XXX-XXXX" },
+      ],
+      ack: "✅ รับแจ้งอุบัติเหตุเรียบร้อยแล้วค่ะ 📩\nฝ่ายบุคคลจะติดต่อกลับโดยเร็วค่ะ\nขอบคุณค่ะ 🌷",
+    },
+    "4": {
+      sheetName: "ฝึกอบรม-ดูงาน", title: "ฝึกอบรม & ดูงาน", icon: "📚", hasFile: true,
+      fields: [
+        { key: "บริษัท", label: "บริษัท", type: "company" },
+        { key: "สาขา", label: "สาขา", type: "branch" },
+        { key: "รหัสพนักงาน", label: "รหัสพนักงาน", type: "text", placeholder: "เช่น EMP001" },
+        { key: "ชื่อ-สกุล", label: "ชื่อ-นามสกุล", type: "text", placeholder: "ชื่อ นามสกุล" },
+        { key: "ตำแหน่ง", label: "ตำแหน่ง", type: "text", placeholder: "ระบุตำแหน่ง" },
+        { key: "แผนก", label: "แผนก", type: "text", placeholder: "ชื่อแผนก" },
+        { key: "วันที่อบรม", label: "วันที่อบรม/ดูงาน", type: "date" },
+        { key: "วันที่เดินทางไป", label: "วันที่เดินทางไป", type: "date" },
+        { key: "วันที่เดินทางกลับ", label: "วันที่เดินทางกลับ", type: "date" },
+        { key: "สถานที่ฝึกอบรม", label: "สถานที่ฝึกอบรม", type: "text", placeholder: "ระบุสถานที่" },
+        { key: "จังหวัด", label: "จังหวัด", type: "text", placeholder: "ระบุจังหวัด" },
+        { key: "รายละเอียดการอบรม", label: "รายละเอียดการอบรม", type: "textarea", placeholder: "อธิบายรายละเอียด" },
+        { key: "เบอร์โทรติดต่อกลับ", label: "เบอร์โทรติดต่อกลับ", type: "tel", placeholder: "0XX-XXX-XXXX" },
+      ],
+      ack: "✅ ฝ่ายบุคคลได้รับเรื่องแล้วค่ะ 📩\nจะดำเนินการและติดต่อกลับภายใน 1–3 วันทำการค่ะ\nขอบคุณค่ะ 🌷",
+    },
+    "5": {
+      sheetName: "ข้อร้องเรียน-เสนอแนะ", title: "ข้อร้องเรียน & เสนอแนะ", icon: "📣",
+      fields: [
+        { key: "บริษัท", label: "บริษัท", type: "company" },
+        { key: "สาขา", label: "สาขา", type: "branch" },
+        { key: "รหัสพนักงาน", label: "รหัสพนักงาน", type: "text", placeholder: "เช่น EMP001" },
+        { key: "ชื่อ-สกุล", label: "ชื่อ-นามสกุล", type: "text", placeholder: "ชื่อ นามสกุล (หรือ - ถ้าไม่ระบุ)" },
+        { key: "ตำแหน่ง", label: "ตำแหน่ง", type: "text", placeholder: "ระบุตำแหน่ง" },
+        { key: "แผนก", label: "แผนก", type: "text", placeholder: "ชื่อแผนก" },
+        { key: "หัวข้อ", label: "หัวข้อ", type: "select", opts: ["ข้อร้องเรียน","ข้อเสนอแนะ"] },
+        { key: "รายละเอียด", label: "รายละเอียด", type: "textarea", placeholder: "อธิบายรายละเอียด" },
+        { key: "ระดับความเร่งด่วน", label: "ระดับความเร่งด่วน", type: "select", opts: ["ปกติ","ปานกลาง","ด่วนที่สุด!"] },
+        { key: "เบอร์โทรติดต่อกลับ", label: "เบอร์โทรติดต่อกลับ", type: "tel", placeholder: "0XX-XXX-XXXX" },
+      ],
+      ack: "✅ ขอบคุณที่ไว้วางใจฝ่ายบุคคลค่ะ 🔒\nข้อมูลของท่านจะถูกเก็บเป็นความลับ\nจะดำเนินการและติดต่อกลับภายใน 3–5 วันทำการค่ะ\nขอบคุณค่ะ 🌷",
+    },
+    "6": {
+      sheetName: "ติดต่อ-HR", title: "ติดต่อ HR", icon: "📞",
+      fields: [
+        { key: "บริษัท", label: "บริษัท", type: "company" },
+        { key: "สาขา", label: "สาขา", type: "branch" },
+        { key: "รหัสพนักงาน", label: "รหัสพนักงาน", type: "text", placeholder: "เช่น EMP001" },
+        { key: "ชื่อ-สกุล", label: "ชื่อ-นามสกุล", type: "text", placeholder: "ชื่อ นามสกุล" },
+        { key: "ตำแหน่ง", label: "ตำแหน่ง", type: "text", placeholder: "ระบุตำแหน่ง" },
+        { key: "ผู้ที่ต้องการติดต่อ", label: "ผู้ที่ต้องการติดต่อ", type: "select", opts: ["คุณสุจิตรา — ผู้จัดการฝ่ายบุคคล (081-2348457)","คุณวรัทยา — ผู้ช่วยผู้จัดการฝ่ายบุคคล (063-4940807)","คุณสุรินันท์ — เงินเดือน คลังเหล็ก (081-7131927)","คุณวรัทยา — เงินเดือน เครือ PTT (063-4940807)","คุณจิราวรรณ — เงินเดือน 7-11 (081-7131927)","คุณจิราวรรณ — สวัสดิการ (081-7131927)","คุณปัทมาวรรณ — สรรหา (064-5586860)","คุณสุรินันท์ — อบรม (081-7131927)"] },
+        { key: "เบอร์โทรติดต่อกลับ", label: "เบอร์โทรติดต่อกลับ", type: "tel", placeholder: "0XX-XXX-XXXX" },
+      ],
+      ack: "✅ ฝ่ายบุคคลได้รับเรื่องแล้วค่ะ 📩\nเจ้าหน้าที่จะติดต่อกลับโดยเร็วค่ะ\nขอบคุณค่ะ 🌷",
+    },
+    "7": {
+      sheetName: "เบิกเบี้ยเลี้ยง", title: "เบิกเบี้ยเลี้ยง", icon: "💸", hasFile: true,
+      fields: [
+        { key: "บริษัท",             label: "บริษัท",             type: "company" },
+        { key: "สาขา",               label: "สาขา",               type: "branch" },
+        { key: "รหัสพนักงาน",        label: "รหัสพนักงาน",        type: "text",   placeholder: "เช่น EMP001" },
+        { key: "ชื่อ-สกุล",          label: "ชื่อ-สกุล (ผู้เบิก)", type: "text",  placeholder: "ชื่อ นามสกุล" },
+        { key: "ตำแหน่ง",            label: "ตำแหน่ง",            type: "text",   placeholder: "ระบุตำแหน่ง" },
+        { key: "ฝ่าย",               label: "ฝ่าย",               type: "select", opts: ["การเงิน","การตลาด","ขาย","คลังสินค้า","จัดซื้อ","จัดส่ง","ซ่อมบำรุง","บริหาร","บัญชี","บุคคล","ผู้บริหาร","IT"] },
+        { key: "ผู้เดินทางร่วม",     label: "ผู้เดินทางร่วม",     type: "travelers", required: false },
+        { key: "วัตถุประสงค์",       label: "วัตถุประสงค์",       type: "select",
+          opts: ["ปฏิบัติงาน","ดูงาน/สัมนา/อบรม","กิจกรรม"],
+          conditional: { "กิจกรรม": { key: "ระบุกิจกรรม", label: "ระบุกิจกรรม", type: "text", placeholder: "ระบุรายละเอียด" } }
+        },
+        { key: "ลักษณะการเดินทาง",   label: "ลักษณะการเดินทาง",  type: "select", opts: ["ในประเทศ","ต่างประเทศ"] },
+        { key: "เดินทางจาก",         label: "จาก",                type: "text",   placeholder: "ต้นทาง" },
+        { key: "เดินทางไปยัง",       label: "ไปยัง",              type: "text",   placeholder: "ปลายทาง" },
+        { key: "วันที่เริ่มเดินทาง", label: "ตั้งแต่วันที่",      type: "date" },
+        { key: "วันที่สิ้นสุดการเดินทาง", label: "ถึงวันที่",     type: "date" },
+        { key: "จำนวนวัน",  label: "จำนวนวัน (อัตโนมัติ)",  type: "text", placeholder: "คำนวณอัตโนมัติ", required: false },
+        { key: "จำนวนคืน", label: "จำนวนคืน (อัตโนมัติ)", type: "text", placeholder: "คำนวณอัตโนมัติ", required: false },
+        { key: "เวลาออกเดินทาง",     label: "เวลาออกเดินทาง",    type: "timeTH" },
+        { key: "เวลากลับถึง",        label: "เวลากลับถึง",        type: "timeTH" },
+        { key: "ประเภทการเบิก",      label: "ประเภทการเบิก",      type: "expenseType" },
+        { key: "รายการค่าเบี้ยเลี้ยง", label: "รายการค่าเบี้ยเลี้ยง", type: "expenseRows" },
+        { key: "รวมค่าใช้จ่าย",      label: "รวมค่าใช้จ่าย (บาท)", type: "totalCost", required: false },
+        { key: "พาหนะเดินทาง",       label: "พาหนะเดินทาง",      type: "vehicleCheck" },
+        { key: "เบอร์โทรติดต่อกลับ", label: "เบอร์โทรติดต่อกลับ", type: "tel",  placeholder: "0XX-XXX-XXXX" },
+      ],
+      ack: "✅ ฝ่ายบุคคลได้รับเรื่องแล้วค่ะ 📩\\nจะดำเนินการและติดต่อกลับภายใน 1–3 วันทำการค่ะ\\nขอบคุณค่ะ 🌷",
+    },
+  };
+  const GAS_URL = "https://script.google.com/macros/s/AKfycby4ptU_5SVn0So54XZUPx9xJDfQlaF9zBZBXakJYBnRfZkAmOgPMYZI2MZ4MZEF1R4d/exec";
+  let userProfile = {};
+
+  // ===== COMPANY_BRANCH =====
+  const COMPANY_BRANCH = {
+    "เจริญไชยสุรินทร์คลังเหล็ก": ["สำนักงานใหญ่","สาขานางรอง","สาขาเดชอุดม"],
+    "บริษัทเจริญไชยสุรินทร์ปิโตรเลียม จำกัด": ["ปั๊มคอโค","ปั๊มธนสาร"],
+    "ห้างหุ้นส่วนจำกัด เจริญไชยบริการ": ["ปั๊มบึ๊กซี","ปั๊มเขวาสินรินทร์"],
+    "บริษัทเจริญไชยสุรินทร์บริการ": ["ปั๊มติดศูนย์โดโยต้า"],
+    "ห้างหุ้นส่วนจำกัด เจริญไชยดอฟฟีช็อป": [],
+    "ห้างหุ้นส่วนจำกัด ทวิหิรัญโรจน์คอฟฟีช็อป": [],
+  };
+  const GAS_TOPIC = "";
+
+  let userId    = "";
+  let idToken   = "";
+  let TOPIC     = "";
+  let liffReady = false;
+  const photoFiles = [null, null, null, null];
+
+  function findTopic() {
+    if (GAS_TOPIC && GAS_TOPIC.trim()) return GAS_TOPIC.trim();
+    const s = new URLSearchParams(window.location.search);
+    if (s.get("topic")) return s.get("topic");
+    const ls = s.get("liff.state") || "";
+    if (ls) {
       try {
-await fetch('https://script.google.com/macros/s/AKfycbxYNqiPzIN1lWIPJRw13-ZIeHj9C033BjBZxICRYjpkcQ8Me3IE8cQBDkJIyo2F1FqI/exec', {
-  method: 'POST',
-  mode: 'no-cors', // เก็บไว้เพื่อเลี่ยงปัญหา CORS
-  headers: {
-    'Content-Type': 'text/plain', // เปลี่ยนจาก application/json เป็น text/plain
-  },
-  body: JSON.stringify(data)
-});
-        
-        showToast('success', 'บันทึกสำเร็จ!', 'ข้อมูลถูกบันทึกลงระบบเรียบร้อยแล้ว');
-        
-        this.reset();
-        setDefaultDate();
-        imageBase64 = '';
-        const preview = document.getElementById('imagePreview');
-        const container = document.getElementById('imagePreviewContainer');
-        preview.classList.add('hidden');
-        container.classList.remove('hidden');
-        
-      } catch (error) {
-        showToast('error', 'เกิดข้อผิดพลาด', 'ไม่สามารถบันทึกข้อมูลได้ กรุณาลองใหม่');
-      } finally {
-        submitBtn.disabled = false;
-        submitText.textContent = 'บันทึกข้อมูล';
+        const m = decodeURIComponent(ls).match(/topic=(\d+)/);
+        if (m) return m[1];
+      } catch(e) {}
+    }
+    return "";
+  }
+
+  function withTimeout(p, ms) {
+    return Promise.race([p, new Promise(function(_, r) {
+      setTimeout(function() { r(new Error("timeout")); }, ms);
+    })]);
+  }
+
+  async function init() {
+    document.getElementById("loadingSection").style.display = "block";
+    TOPIC = findTopic();
+
+    const failsafe = setTimeout(function() {
+      if (!liffReady) {
+        console.warn("LIFF timeout — no userId");
+        showForm();
+      }
+    }, 7000);
+
+    try {
+      await withTimeout(liff.init({ liffId: LIFF_ID }), 6000);
+
+      if (!liff.isLoggedIn()) {
+        clearTimeout(failsafe);
+        liff.login({ redirectUri: window.location.href });
+        return;
+      }
+
+      // วิธี 1: IDToken (เร็วที่สุด)
+      try {
+        idToken = liff.getIDToken() || "";
+        if (idToken) {
+          const decoded = liff.getDecodedIDToken();
+          if (decoded && decoded.sub) {
+            userId = decoded.sub;
+            console.log("userId IDToken:", userId);
+          }
+        }
+      } catch(te) { console.warn("IDToken:", te); }
+
+      // วิธี 2: getProfile fallback
+      if (!userId) {
+        try {
+          const profile = await withTimeout(liff.getProfile(), 5000);
+          userId = profile.userId || "";
+          idToken = liff.getIDToken() || idToken;
+          console.log("userId profile:", userId);
+        } catch(pe) { console.warn("getProfile:", pe); }
+      }
+
+    } catch(e) {
+      console.warn("LIFF:", e.message || e);
+    }
+
+    clearTimeout(failsafe);
+    showForm();
+  }
+
+  function showForm() {
+    if (liffReady) return;
+    liffReady = true;
+    document.getElementById("loadingSection").style.display = "none";
+    if (!TOPIC || !FLOWS[TOPIC]) {
+      document.getElementById("errorPage").style.display = "block";
+      return;
+    }
+    document.getElementById("formSection").style.display = "block";
+    renderForm();
+    renderFileSectionIfNeeded();
+    if (userId) {
+      fetchAndAutoFill(userId);
+    } else if (userProfile && userProfile["รหัสพนักงาน"]) {
+      autoFillFromProfile(userProfile);
+    }
+  }
+
+  function renderForm() {
+    const flow = FLOWS[TOPIC];
+    document.getElementById("headerIcon").textContent  = flow.icon;
+    document.getElementById("headerTitle").textContent = flow.title;
+    document.getElementById("formTitle").textContent   = flow.title + " — กรอกข้อมูลค่ะ";
+
+    const container = document.getElementById("formFields");
+    container.innerHTML = "";
+
+    flow.fields.forEach(function(field, i) {
+      const div = document.createElement("div");
+      div.className = "field";
+      div.id = "field_" + i;
+
+      let input = "";
+
+      if (field.type === "company") {
+        const opts = Object.keys(COMPANY_BRANCH).map(function(c) {
+          return '<option value="' + c + '">' + c + '</option>';
+        }).join("");
+        input = '<select id="f_' + i + '" onchange="onCompanyChange()">'
+          + '<option value="">— กรุณาเลือกบริษัท —</option>' + opts + '</select>';
+
+      } else if (field.type === "branch") {
+        input = '<select id="f_' + i + '">'
+          + '<option value="">— เลือกบริษัทก่อน —</option></select>';
+
+      } else if (field.type === "travelers") {
+        // Dynamic ผู้เดินทางร่วม
+        travelerCount = 0;
+        input = `<div id="travelerList"></div>
+          <button type="button" onclick="addTraveler()" style="display:flex;align-items:center;justify-content:center;gap:6px;border:1px dashed #1A6B1A;border-radius:var(--border-radius-md);color:#1A6B1A;font-size:13px;padding:8px;background:none;cursor:pointer;width:100%;margin-top:4px;">
+            + เพิ่มผู้เดินทาง (สูงสุด 10 คน)</button>`;
+
+      } else if (field.type === "timeTH") {
+        const selId = "f_" + i;
+        input = `<select id="${selId}" style="padding:8px 10px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);font-size:13px;background:var(--color-background-primary);color:var(--color-text-primary);width:100%;"><option value="">-- เลือกเวลา --</option></select>`;
+        setTimeout(function() { buildTimeTH(selId); }, 100);
+
+      } else if (field.type === "expenseType") {
+        input = `<div style="display:flex;flex-direction:column;gap:6px;margin-top:4px;">
+          <label class="exp-type-item" style="display:flex;align-items:center;gap:8px;padding:8px 10px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);cursor:pointer;font-size:13px;">
+            <input type="checkbox" id="chk-real" value="จ่ายจริง" onchange="onExpenseTypeCheck(this)" style="width:16px;height:16px;"> จ่ายจริง</label>
+          <label class="exp-type-item" style="display:flex;align-items:center;gap:8px;padding:8px 10px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);cursor:pointer;font-size:13px;">
+            <input type="checkbox" id="chk-only" value="เบิกเฉพาะค่าเบี้ยเลี้ยง" onchange="onExpenseTypeCheck(this)" style="width:16px;height:16px;"> เบิกเฉพาะค่าเบี้ยเลี้ยง (หน่วยงานจัดที่พัก/อาหารให้)</label>
+          <label class="exp-type-item" style="display:flex;align-items:center;gap:8px;padding:8px 10px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);cursor:pointer;font-size:13px;">
+            <input type="checkbox" id="chk-lvl" value="เบิกตามระดับพนักงาน" onchange="onExpenseTypeCheck(this)" style="width:16px;height:16px;"> เบิกตามระดับพนักงาน</label>
+        </div>
+        <div id="agencySection" style="display:none;margin-top:6px;">
+          <input type="text" id="agencyInput" placeholder="ระบุหน่วยงานที่จัดให้" style="padding:8px 10px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);font-size:13px;background:var(--color-background-primary);color:var(--color-text-primary);width:100%;">
+        </div>
+        <div id="levelSection" style="display:none;margin-top:10px;">
+          <p style="font-size:12px;font-weight:500;color:var(--color-text-secondary);border-bottom:0.5px solid var(--color-border-tertiary);padding-bottom:4px;margin-bottom:6px;">เลือกระดับพนักงาน</p>
+          <div style="display:flex;flex-direction:column;gap:6px;">
+            <label class="exp-type-item" id="lbl-mgr" style="display:flex;align-items:center;gap:8px;padding:8px 10px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);cursor:pointer;font-size:13px;">
+              <input type="checkbox" onchange="toggleExpLevel('mgr',this.checked)" style="width:16px;height:16px;"> ผจก./ผอ.</label>
+            <label class="exp-type-item" id="lbl-head" style="display:flex;align-items:center;gap:8px;padding:8px 10px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);cursor:pointer;font-size:13px;">
+              <input type="checkbox" onchange="toggleExpLevel('head',this.checked)" style="width:16px;height:16px;"> หัวหน้างาน/ผู้ช่วย ผจก.</label>
+            <label class="exp-type-item" id="lbl-staff" style="display:flex;align-items:center;gap:8px;padding:8px 10px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);cursor:pointer;font-size:13px;">
+              <input type="checkbox" onchange="toggleExpLevel('staff',this.checked)" style="width:16px;height:16px;"> เจ้าหน้าที่หรือพนักงาน</label>
+          </div>
+          <div id="mgrRows" style="display:none;"><div style="background:var(--color-background-secondary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:10px 12px;margin-top:6px;"><p style="font-size:12px;font-weight:500;color:var(--color-text-secondary);margin-bottom:8px;">ค่าเบี้ยเลี้ยง ผจก./ผอ.</p><div id="mgrItems"></div><button type="button" onclick="addExpRow('mgr')" style="display:flex;align-items:center;justify-content:center;gap:4px;border:1px dashed #1A6B1A;border-radius:var(--border-radius-md);color:#1A6B1A;font-size:12px;padding:6px;background:none;cursor:pointer;width:100%;margin-top:6px;">+ เพิ่มรายการ</button></div></div>
+          <div id="headRows" style="display:none;"><div style="background:var(--color-background-secondary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:10px 12px;margin-top:6px;"><p style="font-size:12px;font-weight:500;color:var(--color-text-secondary);margin-bottom:8px;">ค่าเบี้ยเลี้ยง หัวหน้างาน/ผู้ช่วย ผจก.</p><div id="headItems"></div><button type="button" onclick="addExpRow('head')" style="display:flex;align-items:center;justify-content:center;gap:4px;border:1px dashed #1A6B1A;border-radius:var(--border-radius-md);color:#1A6B1A;font-size:12px;padding:6px;background:none;cursor:pointer;width:100%;margin-top:6px;">+ เพิ่มรายการ</button></div></div>
+          <div id="staffRows" style="display:none;"><div style="background:var(--color-background-secondary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:10px 12px;margin-top:6px;"><p style="font-size:12px;font-weight:500;color:var(--color-text-secondary);margin-bottom:8px;">ค่าเบี้ยเลี้ยง เจ้าหน้าที่/พนักงาน</p><div id="staffItems"></div><button type="button" onclick="addExpRow('staff')" style="display:flex;align-items:center;justify-content:center;gap:4px;border:1px dashed #1A6B1A;border-radius:var(--border-radius-md);color:#1A6B1A;font-size:12px;padding:6px;background:none;cursor:pointer;width:100%;margin-top:6px;">+ เพิ่มรายการ</button></div></div>
+          <div style="background:var(--color-background-secondary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:10px 14px;display:flex;justify-content:space-between;align-items:center;margin-top:8px;">
+            <span style="font-size:13px;color:var(--color-text-secondary);font-weight:500;">รวมค่าใช้จ่ายทั้งหมด</span>
+            <span id="expGrandTotal" style="font-size:13px;font-weight:600;color:#1A6B1A;">0 บาท</span>
+          </div>
+        </div>`;
+
+      } else if (field.type === "expenseRows") {
+        // จัดการโดย expenseType แล้ว ไม่ต้องสร้าง field
+        const wrapper = document.createElement("div");
+        wrapper.id = "field_" + i;
+        wrapper.style.display = "none";
+        container.appendChild(wrapper);
+        return;
+
+      } else if (field.type === "vehicleCheck") {
+        const vOpts = VEHICLE_LIST.map(function(v) {
+          return '<label class="vehicle-chk" style="display:flex;align-items:center;gap:8px;padding:8px 10px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);cursor:pointer;font-size:13px;" onclick="setTimeout(()=>this.classList.toggle(\'exp-selected\',this.querySelector(\'input\').checked),0)">'
+            + '<input type="checkbox" value="' + v + '" style="width:16px;height:16px;"> ' + v + '</label>';
+        }).join('');
+        input = `<div style="display:flex;flex-direction:column;gap:6px;margin-top:4px;">${vOpts}</div>`;
+
+      } else if (field.type === "select") {
+        const opts = field.opts.map(function(o) {
+          return '<option value="' + o + '">' + o + '</option>';
+        }).join("");
+        const onchange = field.conditional ? ' onchange="onConditionalChange(' + i + ')"' : '';
+        input = '<select id="f_' + i + '"' + onchange + '><option value="">— กรุณาเลือก —</option>' + opts + '</select>';
+
+      } else if (field.type === "textarea") {
+        input = '<textarea id="f_' + i + '" placeholder="' + (field.placeholder || "") + '"></textarea>';
+
+      } else if (field.type === "date" && field.key === "วันที่เริ่มเดินทาง") {
+        input = '<input type="date" id="t7_dateFrom" onchange="calcTravelDays()">';
+
+      } else if (field.type === "date" && field.key === "วันที่สิ้นสุดการเดินทาง") {
+        input = '<input type="date" id="t7_dateTo" onchange="calcTravelDays()">';
+
+      } else if (field.key === "จำนวนวัน") {
+        input = '<input type="text" id="t7_numDays" placeholder="คำนวณอัตโนมัติ" readonly style="background:var(--color-background-secondary);">';
+
+      } else if (field.key === "จำนวนคืน") {
+        input = '<input type="text" id="t7_numNights" placeholder="คำนวณอัตโนมัติ" readonly style="background:var(--color-background-secondary);">';
+
+      } else if (field.type === "totalCost") {
+        input = '<input type="text" id="t7_totalCost" placeholder="คำนวณอัตโนมัติ" readonly style="background:var(--color-background-secondary);font-weight:500;color:#1A6B1A;">';
+
+      } else if (field.key === "รวมค่าใช้จ่าย") {
+        input = '<input type="text" id="t7_totalCost" placeholder="คำนวณอัตโนมัติ" readonly style="background:var(--color-background-secondary);font-weight:500;color:#1A6B1A;">';
+
+      } else if (field.placeholder === "คำนวณอัตโนมัติ") {
+        input = '<input type="text" id="f_' + i + '" placeholder="คำนวณอัตโนมัติ" readonly style="background:var(--color-background-secondary);">';
+
+      } else {
+        input = '<input type="' + (field.type || "text") + '" id="f_' + i + '" placeholder="' + (field.placeholder || "") + '">';
+      }
+
+      // ซ่อน field ที่มี hideDefault
+      if (field.hideDefault) div.style.display = "none";
+
+      const isOptional = field.required === false;
+      div.innerHTML = '<label>' + field.label
+        + (field.type === "branch" ? ' <span style="color:#888;font-size:0.8rem">(ถ้ามี)</span>'
+          : isOptional ? ' <span style="color:#888;font-size:0.8rem">(ถ้ามี)</span>'
+          : ' <span class="required">*</span>')
+        + '</label>' + input + '<div class="error-msg">กรุณากรอกข้อมูลนี้ค่ะ</div>';
+      container.appendChild(div);
+    });
+
+    // Photo/File section จัดการโดย renderFileSectionIfNeeded แล้ว
+  }
+
+  // Conditional Field — แสดง/ซ่อน field ตามค่าที่เลือก
+  function onConditionalChange(fieldIdx) {
+    const flow  = FLOWS[TOPIC];
+    const field = flow.fields[fieldIdx];
+    if (!field || !field.conditional) return;
+
+    const el  = document.getElementById("f_" + fieldIdx);
+    const val = el ? el.value : "";
+
+    // ลบ conditional field เดิมออก
+    const existing = document.getElementById("conditional_" + fieldIdx);
+    if (existing) existing.remove();
+
+    // ซ่อน/แสดง field ที่มี hideWhen
+    flow.fields.forEach(function(f, fi) {
+      if (f.hideWhen && f.hideWhen.includes(val)) {
+        const hw = document.getElementById("field_" + fi);
+        if (hw) hw.style.display = "none";
+      } else if (f.hideWhen) {
+        const hw = document.getElementById("field_" + fi);
+        if (hw) hw.style.display = "";
       }
     });
 
-    setDefaultDate();
+    // ถ้าเลือกค่าที่มี conditional
+    const condDef = field.conditional[val];
+    if (!condDef) return;
 
-    if (window.elementSdk) {
-      window.elementSdk.init({
-        defaultConfig,
-        onConfigChange: async (newConfig) => {
-          config = { ...defaultConfig, ...newConfig };
-          
-          const companyName = document.getElementById('company-name');
-          if (companyName) {
-            companyName.textContent = config.company_name || defaultConfig.company_name;
-          }
-          
-          const formTitle = document.getElementById('form-title');
-          if (formTitle) {
-            formTitle.textContent = config.form_title || defaultConfig.form_title;
-          }
-        },
-        mapToCapabilities: () => ({
-          recolorables: [],
-          borderables: [],
-          fontEditable: undefined,
-          fontSizeable: undefined
-        }),
-        mapToEditPanelValues: (config) => new Map([
-          ['company_name', config.company_name || defaultConfig.company_name],
-          ['form_title', config.form_title || defaultConfig.form_title]
-        ])
+    const div = document.createElement("div");
+    div.id = "conditional_" + fieldIdx;
+
+    // รองรับ type: "multi" (หลาย fields)
+    if (condDef.type === "multi" && condDef.fields) {
+      let html = "";
+      condDef.fields.forEach(function(cf, ci) {
+        let input = "";
+        if (cf.type === "select") {
+          const opts = cf.opts.map(function(o) { return '<option value="' + o + '">' + o + '</option>'; }).join("");
+          input = '<select id="fmc_' + fieldIdx + '_' + ci + '"><option value="">— กรุณาเลือก —</option>' + opts + '</select>';
+        } else if (cf.type === "textarea") {
+          input = '<textarea id="fmc_' + fieldIdx + '_' + ci + '" placeholder="' + (cf.placeholder||"") + '" rows="3"></textarea>';
+        } else {
+          input = '<input type="text" id="fmc_' + fieldIdx + '_' + ci + '" placeholder="' + (cf.placeholder||"") + '">';
+        }
+        html += '<div class="field" style="margin-bottom:8px;">'
+          + '<label>' + cf.label + ' <span class="required">*</span></label>'
+          + input + '<div class="error-msg">กรุณากรอกข้อมูลนี้ค่ะ</div></div>';
       });
+      div.innerHTML = html;
+    } else {
+      // single conditional field
+      let input = "";
+      if (condDef.type === "select") {
+        const opts = condDef.opts.map(function(o) { return '<option value="' + o + '">' + o + '</option>'; }).join("");
+        input = '<select id="fc_' + fieldIdx + '"><option value="">— กรุณาเลือก —</option>' + opts + '</select>';
+      } else if (condDef.type === "textarea") {
+        input = '<textarea id="fc_' + fieldIdx + '" placeholder="' + (condDef.placeholder||"") + '" rows="3"></textarea>';
+      } else {
+        input = '<input type="text" id="fc_' + fieldIdx + '" placeholder="' + (condDef.placeholder||"") + '">';
+      }
+      div.innerHTML = '<div class="field"><label>' + condDef.label + ' <span class="required">*</span></label>'
+        + input + '<div class="error-msg">กรุณากรอกข้อมูลนี้ค่ะ</div></div>';
     }
-  </script>
- <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9bdb7e7bd1db7336',t:'MTc2ODM3NjUxOS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+
+    // แทรกหลัง field ปัจจุบัน
+    const parentField = document.getElementById("field_" + fieldIdx);
+    if (parentField && parentField.nextSibling) {
+      parentField.parentNode.insertBefore(div, parentField.nextSibling);
+    } else if (parentField) {
+      parentField.parentNode.appendChild(div);
+    }
+
+    // แสดง photoSection เมื่อเลือก แจ้งทำความดี
+    const photoSec = document.getElementById("photoSection");
+    if (val === "แจ้งทำความดี") {
+      if (photoSec) {
+        photoSec.style.display = "block";
+        const title = document.getElementById("photoSectionTitle");
+        if (title) title.textContent = "📷 แนบรูปภาพ (กด + เพื่อเพิ่ม)";
+        if (document.getElementById("photoGrid").children.length === 0) addPhotoSlot();
+      }
+    } else {
+      // ซ่อน photoSection ถ้าเลือกอย่างอื่น (ยกเว้น topic ที่มี hasPhoto เอง)
+      const flow = FLOWS[TOPIC];
+      if (photoSec && !flow.hasPhoto) photoSec.style.display = "none";
+    }
+  }
+
+  function onCompanyChange() {
+    const flow = FLOWS[TOPIC];
+    const companyIdx = flow.fields.findIndex(function(f) { return f.type === "company"; });
+    const branchIdx  = flow.fields.findIndex(function(f) { return f.type === "branch"; });
+    if (companyIdx < 0 || branchIdx < 0) return;
+
+    const companyEl = document.getElementById("f_" + companyIdx);
+    const branchEl  = document.getElementById("f_" + branchIdx);
+    const company   = companyEl ? companyEl.value : "";
+    const branches  = COMPANY_BRANCH[company] || [];
+
+    if (branchEl) {
+      if (branches.length === 0) {
+        branchEl.innerHTML = '<option value="ไม่มีสาขา">ไม่มีสาขา</option>';
+        branchEl.disabled = true;
+      } else {
+        branchEl.disabled = false;
+        branchEl.innerHTML = '<option value="">— กรุณาเลือกสาขา —</option>'
+          + branches.map(function(b) { return '<option value="' + b + '">' + b + '</option>'; }).join("");
+      }
+    }
+  }
+
+  function renderPhotoGrid() {
+    const grid = document.getElementById("photoGrid");
+    grid.innerHTML = "";
+    for (let i = 0; i < 4; i++) {
+      const slot = document.createElement("div");
+      slot.className = "photo-slot";
+      slot.id = "slot_" + i;
+      slot.innerHTML = '<span class="placeholder">📷</span>'
+        + '<input type="file" accept="image/*" onchange="onPhotoSelect(event,' + i + ')">'
+        + '<button class="remove-btn" onclick="removePhoto(' + i + ')">✕</button>';
+      grid.appendChild(slot);
+    }
+  }
+
+  function onPhotoSelect(event, idx) {
+    const file = event.target.files[0];
+    if (!file) return;
+    photoFiles[idx] = file;
+    const slot = document.getElementById("slot_" + idx);
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      slot.innerHTML = '<img src="' + e.target.result + '">'
+        + '<button class="remove-btn" onclick="removePhoto(' + idx + ')">✕</button>';
+      slot.classList.add("has-image");
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function removePhoto(idx) {
+    photoFiles[idx] = null;
+    const slot = document.getElementById("slot_" + idx);
+    slot.className = "photo-slot";
+    slot.innerHTML = '<span class="placeholder">📷</span>'
+      + '<input type="file" accept="image/*" onchange="onPhotoSelect(event,' + idx + ')">'
+      + '<button class="remove-btn" onclick="removePhoto(' + idx + ')">✕</button>';
+  }
+
+  // Compress รูปก่อนส่ง → ลดขนาดจาก 3-5MB เหลือ ~200KB
+  async function toBase64(file) {
+    return new Promise(function(resolve, reject) {
+      const img    = new Image();
+      const reader = new FileReader();
+
+      reader.onload = function(e) {
+        img.onload = function() {
+          // ลดขนาดสูงสุด 800px
+          const MAX = 800;
+          let w = img.width;
+          let h = img.height;
+          if (w > MAX || h > MAX) {
+            if (w > h) { h = Math.round(h * MAX / w); w = MAX; }
+            else       { w = Math.round(w * MAX / h); h = MAX; }
+          }
+          const canvas = document.createElement("canvas");
+          canvas.width  = w;
+          canvas.height = h;
+          canvas.getContext("2d").drawImage(img, 0, 0, w, h);
+          // compress เป็น JPEG quality 0.7
+          const dataUrl = canvas.toDataURL("image/jpeg", 0.7);
+          resolve(dataUrl.split(",")[1]);
+        };
+        img.onerror = reject;
+        img.src = e.target.result;
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  }
+
+  async function submitForm() {
+    if (!liffReady) { alert("กรุณารอสักครู่ค่ะ"); return; }
+
+    const flow = FLOWS[TOPIC];
+    const answers = {};
+    let valid = true;
+
+    flow.fields.forEach(function(field, i) {
+      // หา element — date ของ topic 7 ใช้ id พิเศษ
+      let el;
+      if (field.key === "วันที่เริ่มเดินทาง")           el = document.getElementById("t7_dateFrom");
+      else if (field.key === "วันที่สิ้นสุดการเดินทาง") el = document.getElementById("t7_dateTo");
+      else if (field.key === "จำนวนวัน")                el = document.getElementById("t7_numDays");
+      else if (field.key === "จำนวนคืน")               el = document.getElementById("t7_numNights");
+      else if (field.key === "รวมค่าใช้จ่าย")           el = document.getElementById("t7_totalCost");
+      else                                               el = document.getElementById("f_" + i);
+
+      const div = document.getElementById("field_" + i);
+      const isBranch   = field.type === "branch";
+      const isOptional = field.required === false;
+      const isSpecial  = ["travelers","expenseType","expenseRows","vehicleCheck","timeTH","totalCost"].includes(field.type);
+      const isReadonly = el && el.hasAttribute && el.hasAttribute('readonly');
+
+      // ถ้า field ไม่มี element จริง (conditional field ที่ render โดย onConditionalChange) → ข้าม
+      if (!el && !div && !isSpecial) return;
+
+      const val = el ? el.value.trim() : "";
+
+      if (!val && !isBranch && !isOptional && !isSpecial && !isReadonly) {
+        if (div) { div.classList.add("error"); valid = false; }
+      } else {
+        if (div) div.classList.remove("error");
+        if (!isSpecial) answers[field.key] = val;
+      }
+
+      // เก็บค่า special types ของ Topic 7
+      if (field.type === "travelers") {
+        answers["ผู้เดินทางร่วม"] = getTravelersData();
+        return;
+      }
+      if (field.type === "expenseType") {
+        answers["ประเภทการเบิก"]      = getExpenseTypes();
+        answers["หน่วยงานที่จัดให้"]  = document.getElementById("agencyInput")?.value || "";
+        answers["รายการค่าเบี้ยเลี้ยง"] = getExpenseRowsData();
+        const costEl = document.getElementById('t7_totalCost');
+        if (costEl) answers["รวมค่าใช้จ่าย"] = costEl.value.replace(' บาท','').replace(/,/g,'');
+        return;
+      }
+      if (field.type === "expenseRows") return;
+      if (field.type === "vehicleCheck") {
+        answers["พาหนะเดินทาง"] = getVehicles();
+        return;
+      }
+      if (field.type === "timeTH") {
+        const el2 = document.getElementById("f_" + i);
+        answers[field.key] = el2 ? el2.value : "";
+        return;
+      }
+
+      // เก็บค่า conditional field ถ้ามี
+      if (field.conditional) {
+        const condDef = field.conditional[val];
+        if (condDef) {
+          if (condDef.type === "multi" && condDef.fields) {
+            // multi fields
+            condDef.fields.forEach(function(cf, ci) {
+              const mEl = document.getElementById("fmc_" + i + "_" + ci);
+              if (mEl) answers[cf.key] = mEl.value.trim();
+            });
+          } else {
+            // single conditional
+            const condEl = document.getElementById("fc_" + i);
+            if (condEl) answers[condDef.key] = condEl.value.trim();
+          }
+        }
+      }
+    });
+
+    if (!valid) { window.scrollTo({ top: 0, behavior: "smooth" }); return; }
+
+    document.getElementById("formSection").style.display   = "none";
+    document.getElementById("loadingSection").style.display = "block";
+
+    // อัปโหลดรูป (topic 3) — ใช้ JSONP เพื่อเลี่ยง CORS
+    let photoLinks = [];
+    if (flow.hasPhoto) {
+      const photos = photoFiles.filter(function(f) { return f !== null; });
+      for (let i = 0; i < photos.length; i++) {
+        document.getElementById("loadingText").textContent = "กำลังอัปโหลดรูป " + (i+1) + "/" + photos.length + "...";
+        try {
+          const b64  = await toBase64(photos[i]);
+          // ส่ง base64 ผ่าน JSONP GET (แบ่งเป็น chunks ถ้าใหญ่เกิน)
+          const result = await uploadViaJSONP({
+            name:     photos[i].name,
+            mimeType: photos[i].type,
+            data:     b64,
+          });
+          if (result && result.link) photoLinks.push(result.link);
+        } catch(err) {
+          console.warn("upload failed:", err);
+        }
+      }
+      answers["ลิงก์รูปภาพ"] = photoLinks.join("\n");
+    }
+
+    // อัปโหลดไฟล์แนบ (topic 4)
+    if (flow.hasFile) {
+      const fileLinks = await uploadFilesToCloudinary();
+      if (fileLinks.length > 0) answers["ลิงก์เอกสารแนบ"] = fileLinks.join("\n");
+    }
+
+    document.getElementById("loadingText").textContent = "กำลังส่งข้อมูล กรุณารอสักครู่...";
+
+    try {
+      const params = new URLSearchParams({
+        action:  "submit",
+        topic:   TOPIC,
+        userId:  userId,
+        idToken: idToken,
+        answers: JSON.stringify(answers),
+      });
+      // ใช้ JSONP submit เพื่อเลี่ยง CORS
+      const result = await submitViaJSONP(GAS_URL + "?" + params.toString());
+
+      document.getElementById("loadingSection").style.display = "none";
+      if (result && result.status === "ok") {
+        document.getElementById("successMsg").textContent = flow.ack.replace(/\n/g, " ");
+        document.getElementById("refBadge").textContent   = "เลขที่: " + (result.refNo || "-");
+        document.getElementById("successSection").style.display = "block";
+      } else {
+        throw new Error("Server error");
+      }
+    } catch(err) {
+      document.getElementById("loadingSection").style.display = "none";
+      document.getElementById("formSection").style.display    = "block";
+      alert("เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้งค่ะ");
+    }
+  }
+
+  // ดึง UserProfile จาก GAS หลัง LIFF login เสร็จ
+  // Upload รูปผ่าน Cloudinary (ไม่ติด CORS)
+  const CLOUDINARY_CLOUD  = "dmniqiet7";
+  const CLOUDINARY_PRESET = "np9mbto9";
+
+  async function uploadViaJSONP(fileData) {
+    const url  = "https://api.cloudinary.com/v1_1/" + CLOUDINARY_CLOUD + "/image/upload";
+    const body = new FormData();
+    body.append("upload_preset", CLOUDINARY_PRESET);
+    body.append("folder", "hr-accident");
+    // แปลง base64 กลับเป็น blob
+    const byteStr = atob(fileData.data);
+    const arr = new Uint8Array(byteStr.length);
+    for (let i = 0; i < byteStr.length; i++) arr[i] = byteStr.charCodeAt(i);
+    const blob = new Blob([arr], { type: fileData.mimeType || "image/jpeg" });
+    body.append("file", blob, fileData.name || "photo.jpg");
+
+    const res  = await fetch(url, { method: "POST", body: body });
+    const data = await res.json();
+    if (data.secure_url) {
+      return { link: data.secure_url };
+    }
+    throw new Error("Cloudinary error: " + JSON.stringify(data));
+  }
+
+  // JSONP submit
+  function submitViaJSONP(url) {
+    return new Promise(function(resolve, reject) {
+      const cbName = "gasSubmit_" + Date.now();
+      const timeout = setTimeout(function() {
+        delete window[cbName];
+        reject(new Error("timeout"));
+      }, 15000);
+
+      window[cbName] = function(data) {
+        clearTimeout(timeout);
+        delete window[cbName];
+        const s = document.getElementById("submitScript");
+        if (s) s.remove();
+        resolve(data);
+      };
+
+      const script = document.createElement("script");
+      script.id  = "submitScript";
+      script.src = url + "&callback=" + cbName;
+      script.onerror = function() {
+        clearTimeout(timeout);
+        delete window[cbName];
+        reject(new Error("script error"));
+      };
+      document.head.appendChild(script);
+    });
+  }
+
+  // ใช้ JSONP แทน fetch เพื่อเลี่ยง CORS
+  function fetchAndAutoFill(uid) {
+    if (!uid) return;
+    const callbackName = "gasCallback_" + Date.now();
+    window[callbackName] = function(data) {
+      if (data && data.profile) autoFillFromProfile(data.profile);
+      delete window[callbackName];
+      const s = document.getElementById("gasScript");
+      if (s) s.remove();
+    };
+    const script = document.createElement("script");
+    script.id  = "gasScript";
+    script.src = GAS_URL + "?action=profile&userId=" + encodeURIComponent(uid) + "&callback=" + callbackName;
+    document.head.appendChild(script);
+  }
+
+  // Auto-fill ฟอร์มจาก UserProfile
+  function autoFillFromProfile(profile) {
+    if (!profile || Object.keys(profile).length === 0) return;
+    const flow = FLOWS[TOPIC];
+    if (!flow) return;
+    console.log("autoFill profile:", JSON.stringify(profile));
+
+    flow.fields.forEach(function(field, i) {
+      const el = document.getElementById("f_" + i);
+      if (!el) return;
+
+      if (field.type === "company") {
+        const val = profile["บริษัท"] || "";
+        if (val) {
+          el.value = val;
+          onCompanyChange();
+          // รอ branch render แล้ว set สาขา
+          setTimeout(function() {
+            const branchIdx = flow.fields.findIndex(function(f) { return f.type === "branch"; });
+            if (branchIdx >= 0) {
+              const branchEl = document.getElementById("f_" + branchIdx);
+              if (branchEl && profile["สาขา"]) branchEl.value = profile["สาขา"];
+            }
+          }, 200);
+        }
+      } else if (field.type === "branch") {
+        // จัดการผ่าน company timeout ด้านบน
+      } else {
+        const val = profile[field.key] || "";
+        if (val) el.value = val;
+      }
+    });
+  }
+
+  // ===== Topic 7 Special Fields =====
+  const DEPT_LIST = ["การเงิน","การตลาด","ขาย","คลังสินค้า","จัดซื้อ","จัดส่ง","ซ่อมบำรุง","บริหาร","บัญชี","บุคคล","ผู้บริหาร","IT"];
+  const VEHICLE_LIST = ["รถยนต์ส่วนตัว","รถเช่า","รถยนต์บริษัท","รถไฟ","เครื่องบิน"];
+  let travelerCount = 0;
+  const expenseRows = { mgr: 0, head: 0, staff: 0 };
+
+  // Render dropdown เวลาไทย
+  function buildTimeTH(selId) {
+    const s = document.getElementById(selId);
+    if (!s) return;
+    s.innerHTML = '<option value="">-- เลือกเวลา --</option>';
+    for (let h = 0; h < 24; h++) {
+      for (let m = 0; m < 60; m += 30) {
+        const hh = String(h).padStart(2,'0'), mm = String(m).padStart(2,'0');
+        const o = document.createElement('option');
+        o.value = `${hh}:${mm}`;
+        o.textContent = `${hh}:${mm} น.`;
+        s.appendChild(o);
+      }
+    }
+  }
+
+  function calcTravelDays() {
+    const fromEl = document.getElementById('t7_dateFrom');
+    const toEl   = document.getElementById('t7_dateTo');
+    if (!fromEl || !toEl || !fromEl.value || !toEl.value) return;
+    const d = Math.max(0, (new Date(toEl.value) - new Date(fromEl.value)) / 86400000);
+    const daysEl   = document.getElementById('t7_numDays');
+    const nightsEl = document.getElementById('t7_numNights');
+    if (daysEl)   daysEl.value   = Math.round(d + 1) + ' วัน';
+    if (nightsEl) nightsEl.value = Math.round(d) + ' คืน';
+  }
+
+  function addTraveler() {
+    if (travelerCount >= 10) return;
+    travelerCount++;
+    const list = document.getElementById('travelerList');
+    const div  = document.createElement('div');
+    div.id = 'traveler_' + travelerCount;
+    div.style.cssText = 'background:var(--color-background-secondary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:10px 12px;margin-bottom:8px;position:relative;';
+    const deptOpts = DEPT_LIST.map(d => `<option>${d}</option>`).join('');
+    div.innerHTML = `<p style="font-size:11px;color:var(--color-text-tertiary);margin-bottom:6px;">คนที่ ${travelerCount}</p>
+      <button onclick="removeTraveler(${travelerCount})" style="position:absolute;top:8px;right:10px;background:none;border:none;color:var(--color-text-tertiary);font-size:16px;cursor:pointer;">✕</button>
+      <div class="field" style="margin-bottom:6px;">
+        <label style="font-size:12px;color:var(--color-text-secondary);">ชื่อ-สกุล</label>
+        <input type="text" id="tr${travelerCount}_name" placeholder="ชื่อ นามสกุล" style="padding:7px 10px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);font-size:13px;background:var(--color-background-primary);color:var(--color-text-primary);width:100%;">
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+        <div class="field">
+          <label style="font-size:12px;color:var(--color-text-secondary);">ตำแหน่ง</label>
+          <input type="text" id="tr${travelerCount}_pos" placeholder="ตำแหน่ง" style="padding:7px 10px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);font-size:13px;background:var(--color-background-primary);color:var(--color-text-primary);width:100%;">
+        </div>
+        <div class="field">
+          <label style="font-size:12px;color:var(--color-text-secondary);">ฝ่าย</label>
+          <select id="tr${travelerCount}_dept" style="padding:7px 10px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);font-size:13px;background:var(--color-background-primary);color:var(--color-text-primary);width:100%;">
+            <option value="">-- เลือก --</option>${deptOpts}
+          </select>
+        </div>
+      </div>`;
+    list.appendChild(div);
+  }
+
+  function removeTraveler(idx) {
+    document.getElementById('traveler_' + idx)?.remove();
+    travelerCount = Math.max(0, travelerCount - 1);
+  }
+
+  function getTravelersData() {
+    const result = [];
+    document.querySelectorAll('[id^="traveler_"]').forEach(function(div) {
+      const id = div.id.split('_')[1];
+      const name = document.getElementById('tr'+id+'_name')?.value || '';
+      const pos  = document.getElementById('tr'+id+'_pos')?.value  || '';
+      const dept = document.getElementById('tr'+id+'_dept')?.value || '';
+      if (name) result.push(name + ' (' + pos + '/' + dept + ')');
+    });
+    return result.join(', ');
+  }
+
+  function onExpenseTypeCheck(cb) {
+    cb.closest('.exp-type-item').classList.toggle('exp-selected', cb.checked);
+    const anyChecked = document.querySelectorAll('.exp-type-item input:checked').length > 0;
+    const onlyChecked = document.getElementById('chk-only')?.checked;
+    // ซ่อน/แสดง agencySection และ field หน่วยงานที่จัดให้
+    document.getElementById('agencySection').style.display = onlyChecked ? 'block' : 'none';
+    document.querySelectorAll('#formFields .field').forEach(function(div) {
+      const lbl = div.querySelector('label')?.textContent || '';
+      if (lbl.includes('หน่วยงานที่จัดให้')) {
+        div.style.display = onlyChecked ? 'block' : 'none';
+      }
+    });
+    document.getElementById('levelSection').style.display = anyChecked ? 'block' : 'none';
+  }
+
+  function toggleExpLevel(type, show) {
+    document.getElementById('lbl-' + type).classList.toggle('exp-selected', show);
+    document.getElementById(type + 'Rows').style.display = show ? 'block' : 'none';
+    if (show && document.getElementById(type + 'Items').children.length === 0) addExpRow(type);
+  }
+
+  function addExpRow(type) {
+    expenseRows[type]++;
+    const idx = expenseRows[type];
+    const div = document.createElement('div');
+    div.id = type + 'row' + idx;
+    div.style.cssText = 'margin-bottom:8px;border-bottom:0.5px solid var(--color-border-tertiary);padding-bottom:8px;';
+    div.innerHTML = `
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+        <span style="font-size:11px;color:var(--color-text-tertiary);">รายการที่ ${idx}</span>
+        ${idx > 1 ? `<button onclick="document.getElementById('${type}row${idx}').remove();calcExpTotal();" style="background:none;border:none;color:var(--color-text-tertiary);font-size:12px;cursor:pointer;">ลบ</button>` : ''}
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:6px;">
+        <div><input type="number" placeholder="0" min="0" oninput="calcExpRow('${type}',${idx})" id="${type}r${idx}a" style="padding:6px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);font-size:12px;text-align:center;width:100%;background:var(--color-background-primary);color:var(--color-text-primary);">
+          <p style="font-size:10px;color:var(--color-text-tertiary);text-align:center;margin-top:2px;">บาท/วัน</p></div>
+        <div><input type="number" placeholder="0" min="0" oninput="calcExpRow('${type}',${idx})" id="${type}r${idx}b" style="padding:6px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);font-size:12px;text-align:center;width:100%;background:var(--color-background-primary);color:var(--color-text-primary);">
+          <p style="font-size:10px;color:var(--color-text-tertiary);text-align:center;margin-top:2px;">คน</p></div>
+        <div><input type="number" placeholder="0" min="0" oninput="calcExpRow('${type}',${idx})" id="${type}r${idx}c" style="padding:6px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);font-size:12px;text-align:center;width:100%;background:var(--color-background-primary);color:var(--color-text-primary);">
+          <p style="font-size:10px;color:var(--color-text-tertiary);text-align:center;margin-top:2px;">วัน</p></div>
+        <div><div id="${type}r${idx}s" style="background:#EAF3DE;color:#27500A;border:0.5px solid #b7d9a0;border-radius:var(--border-radius-md);padding:6px;font-size:12px;font-weight:500;text-align:center;">0</div>
+          <p style="font-size:10px;color:var(--color-text-tertiary);text-align:center;margin-top:2px;">บาท</p></div>
+      </div>`;
+    document.getElementById(type + 'Items').appendChild(div);
+  }
+
+  function calcExpRow(type, idx) {
+    const a = parseFloat(document.getElementById(type+'r'+idx+'a')?.value) || 0;
+    const b = parseFloat(document.getElementById(type+'r'+idx+'b')?.value) || 0;
+    const c = parseFloat(document.getElementById(type+'r'+idx+'c')?.value) || 0;
+    const el = document.getElementById(type+'r'+idx+'s');
+    if (el) el.textContent = Math.round(a*b*c).toLocaleString();
+    calcExpTotal();
+  }
+
+  function calcExpTotal() {
+    let t = 0;
+    document.querySelectorAll('[id$="s"][id^="mgr"],[id$="s"][id^="head"],[id$="s"][id^="staff"]')
+      .forEach(el => { if (!el.classList.contains('sum-header')) t += parseFloat(el.textContent.replace(/,/g,'')) || 0; });
+    const totalEl = document.getElementById('expGrandTotal');
+    if (totalEl) totalEl.textContent = Math.round(t).toLocaleString() + ' บาท';
+    const costEl = document.getElementById('t7_totalCost');
+    if (costEl) costEl.value = Math.round(t).toLocaleString() + ' บาท';
+  }
+
+  function getExpenseTypes() {
+    return Array.from(document.querySelectorAll('.exp-type-item input:checked')).map(cb => cb.value).join(', ');
+  }
+
+  function getExpenseRowsData() {
+    const result = [];
+    ['mgr','head','staff'].forEach(function(type) {
+      const labels = { mgr: 'ผจก./ผอ.', head: 'หัวหน้า/ผู้ช่วย', staff: 'พนักงาน' };
+      const rows = document.getElementById(type + 'Items');
+      if (!rows || rows.style.display === 'none') return;
+      let total = 0;
+      rows.querySelectorAll('[id$="s"]').forEach(el => total += parseFloat(el.textContent.replace(/,/g,'')) || 0);
+      if (total > 0) result.push(labels[type] + ': ' + total.toLocaleString() + ' บาท');
+    });
+    return result.join(' | ');
+  }
+
+  function getVehicles() {
+    return Array.from(document.querySelectorAll('.vehicle-chk input:checked')).map(cb => cb.value).join(', ');
+  }
+
+  // ===== File Upload (topic 4) =====
+  const fileItems = []; // { file, slot }
+  const MAX_FILES = 4;
+
+  function renderFileSectionIfNeeded() {
+    const flow = FLOWS[TOPIC];
+    if (flow && flow.hasPhoto) {
+      const sec = document.getElementById("photoSection");
+      sec.style.display = "block";
+      // แก้ title ตาม topic
+      const title = document.getElementById("photoSectionTitle");
+      if (title) title.textContent = "📷 แนบรูปภาพ (กด + เพื่อเพิ่ม)";
+      // เพิ่ม slot แรกอัตโนมัติ
+      if (document.getElementById("photoGrid").children.length === 0) addPhotoSlot();
+    }
+    if (flow && flow.hasFile) {
+      document.getElementById("fileSection").style.display = "block";
+      if (fileItems.length === 0) addFileSlot();
+    }
+  }
+
+  // เพิ่ม photo slot แบบ dynamic
+  let photoSlotCount = 0;
+  function addPhotoSlot() {
+    photoSlotCount++;
+    const idx  = photoSlotCount;
+    const grid = document.getElementById("photoGrid");
+    const slot = document.createElement("div");
+    slot.className = "photo-slot";
+    slot.id = "pslot_" + idx;
+    slot.style.cssText = "position:relative;border:1.5px dashed var(--color-border-secondary);border-radius:var(--border-radius-md);aspect-ratio:1;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:4px;cursor:pointer;overflow:hidden;background:var(--color-background-secondary);";
+    slot.innerHTML = '<i class="ti ti-camera" style="font-size:22px;color:var(--color-text-tertiary);" aria-hidden="true"></i>'
+      + '<span style="font-size:0.72rem;color:var(--color-text-tertiary);">รูปที่ ' + idx + '</span>'
+      + '<input type="file" accept="image/*" style="position:absolute;inset:0;opacity:0;cursor:pointer;" onchange="onPhotoSlotSelect(event,' + idx + ')">'
+      + '<button onclick="removePhotoSlot(' + idx + ')" style="position:absolute;top:4px;right:4px;background:rgba(0,0,0,0.5);color:white;border:none;border-radius:50%;width:22px;height:22px;font-size:12px;cursor:pointer;display:none;" class="remove-btn">✕</button>';
+    grid.appendChild(slot);
+    // เก็บ photoFiles ตาม idx
+    photoFiles[idx - 1] = null;
+  }
+
+  function onPhotoSlotSelect(event, idx) {
+    const file = event.target.files[0];
+    if (!file) return;
+    photoFiles[idx - 1] = file;
+    const slot = document.getElementById("pslot_" + idx);
+    if (!slot) return;
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      slot.style.backgroundImage = "url(" + e.target.result + ")";
+      slot.style.backgroundSize = "cover";
+      slot.style.backgroundPosition = "center";
+      slot.querySelector('.ti-camera')?.remove();
+      slot.querySelector('span')?.remove();
+      const rmBtn = slot.querySelector('.remove-btn');
+      if (rmBtn) rmBtn.style.display = "block";
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function removePhotoSlot(idx) {
+    photoFiles[idx - 1] = null;
+    const slot = document.getElementById("pslot_" + idx);
+    if (slot) slot.remove();
+  }
+
+  function addFileSlot() {
+    if (fileItems.length >= MAX_FILES) return;
+    const idx  = fileItems.length;
+    const item = { file: null };
+    fileItems.push(item);
+
+    const div = document.createElement("div");
+    div.className = "file-item";
+    div.id = "fileItem_" + idx;
+    div.innerHTML = '<input type="file" accept="image/*,application/pdf,.doc,.docx,.xls,.xlsx" onchange="onFileSelect(event,' + idx + ')" />'
+      + '<button class="remove-file" onclick="removeFileSlot(' + idx + ')">✕</button>';
+    document.getElementById("fileList").appendChild(div);
+
+    // ซ่อนปุ่มเพิ่มถ้าครบ 4
+    if (fileItems.length >= MAX_FILES) {
+      document.getElementById("btnAddFile").style.display = "none";
+    }
+  }
+
+  function onFileSelect(event, idx) {
+    const file = event.target.files[0];
+    if (!file) return;
+    fileItems[idx].file = file;
+    const div = document.getElementById("fileItem_" + idx);
+    div.innerHTML = '<span class="file-name">📎 ' + file.name + '</span>'
+      + '<button class="remove-file" onclick="removeFileSlot(' + idx + ')">✕</button>';
+  }
+
+  function removeFileSlot(idx) {
+    fileItems.splice(idx, 1);
+    // re-render ทั้งหมด
+    const list = document.getElementById("fileList");
+    list.innerHTML = "";
+    const backup = [...fileItems];
+    fileItems.length = 0;
+    backup.forEach(function(item) {
+      addFileSlot();
+      if (item.file) fileItems[fileItems.length - 1].file = item.file;
+    });
+    document.getElementById("btnAddFile").style.display = "flex";
+  }
+
+  async function toBase64File(file) {
+    return new Promise(function(resolve, reject) {
+      const reader = new FileReader();
+      reader.onload  = function() { resolve(reader.result.split(",")[1]); };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  }
+
+  async function uploadFilesToCloudinary() {
+    const links = [];
+    const files = fileItems.filter(function(i) { return i.file; });
+    for (let i = 0; i < files.length; i++) {
+      document.getElementById("loadingText").textContent = "กำลังอัปโหลดไฟล์ " + (i+1) + "/" + files.length + "...";
+      try {
+        const file = files[i].file;
+        const isImage = file.type.startsWith("image/");
+        const b64  = isImage ? await toBase64(file) : await toBase64File(file);
+        const type = isImage ? "image" : "raw";
+        const url  = "https://api.cloudinary.com/v1_1/" + CLOUDINARY_CLOUD + "/" + type + "/upload";
+        const body = new FormData();
+        body.append("upload_preset", CLOUDINARY_PRESET);
+        body.append("folder", "hr-training");
+        const byteStr = atob(b64);
+        const arr = new Uint8Array(byteStr.length);
+        for (let j = 0; j < byteStr.length; j++) arr[j] = byteStr.charCodeAt(j);
+        const blob = new Blob([arr], { type: file.type });
+        body.append("file", blob, file.name);
+        const res  = await fetch(url, { method: "POST", body: body });
+        const data = await res.json();
+        if (data.secure_url) links.push(data.secure_url);
+      } catch(err) {
+        console.warn("upload file failed:", err);
+      }
+    }
+    return links;
+  }
+
+  function closeLiff() {
+    try {
+      if (liff.isInClient()) {
+        liff.closeWindow();
+      } else {
+        window.close();
+        // fallback ถ้า window.close() ไม่ทำงาน
+        setTimeout(function() {
+          document.getElementById("successSection").style.display = "none";
+          document.getElementById("formSection").style.display    = "block";
+          renderForm();
+        }, 500);
+      }
+    } catch(e) {
+      window.close();
+    }
+  }
+
+  window.addEventListener("load", init);
+</script>
+</body>
 </html>
